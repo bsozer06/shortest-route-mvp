@@ -30,12 +30,12 @@ app.post('/update-route', async (req, res) => {
     console.log(data);
 
     // Validate input
-    if (!data.start || !data.end) {
-        return res.status(400).json({ error: 'Start or end point is missing' });
+    if (data.start == null || data.end == null) {
+        return res.status(400).json({ error: 'Start and end points must be arrays of two numbers [longitude, latitude]' });
     }
 
-    const start = data.start; // [longitude, latitude]
-    const end = data.end;
+    const start = Object.values(data.start); // [longitude, latitude]
+    const end = Object.values(data.end); // [longitude, latitude]
 
     const client = await pool.connect();
 
@@ -46,12 +46,20 @@ app.post('/update-route', async (req, res) => {
         await client.query('DELETE FROM public.points');
 
         // Insert new start and end points
-        const insertSQL = 'INSERT INTO public.points (geom) VALUES (ST_SetSRID(ST_MakePoint($1, $2), 4326))';
+        const insertSQL = 'INSERT INTO public.points (geom) VALUES (ST_SetSRID(ST_MakePoint($2, $1), 4326))';
         await client.query(insertSQL, [start[0], start[1]]);
         await client.query(insertSQL, [end[0], end[1]]);
-
+        console.log('First Insert SQL:', insertSQL, [start[0], start[1]]);
+        console.log('Second Insert SQL:', insertSQL, [end[0], end[1]]);
+        
         // Refresh materialized view
-        await client.query('REFRESH MATERIALIZED VIEW public.mv_short_path');
+        try {
+            await client.query('REFRESH MATERIALIZED VIEW public.mv_short_path');
+        } catch (mvErr) {
+            console.error('Error refreshing materialized view:', mvErr);
+            await client.query('ROLLBACK');
+            return res.status(500).json({ error: 'Failed to refresh materialized view' });
+        }
 
         await client.query('COMMIT');
 

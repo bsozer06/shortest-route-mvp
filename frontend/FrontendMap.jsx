@@ -124,12 +124,23 @@ function FrontendMap() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ start, end }),
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message);
-              shortestPath.setParams({ _: Date.now() }); // refresh wms
+        });
+
+        const data = await res.json();
+        alert(data.message);
+
+        // shortestPath WMS layer'ını güncelle
+        const map = mapRef.current;
+        if (map) {
+          // shortestPath layer'ı harita üzerindeki WMS katmanları arasında bul
+          map.eachLayer(layer => {
+            console.log('layer:', layer.options.layers);
+            if (layer instanceof L.TileLayer.WMS && layer.options.layers === PATH_LAYER) {
+              // WMS katmanını yeniden yüklemek için parametre ekle
+              layer.setParams({ _: Date.now() });
+            }
           });
+        }
         // Shortest Path WMS katmanını yeniden yüklemeye zorlamak için bir yol
         // Bu genellikle WMS katmanının 'setParams' veya 'redraw' çağrılmasıyla yapılır.
         // Ancak kodunuzda shortestPath katmanına erişiminiz olmadığı için,
