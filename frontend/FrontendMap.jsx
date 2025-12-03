@@ -12,21 +12,16 @@ function FrontendMap() {
   const [end, setEnd] = useState(null);
   const [selecting, setSelecting] = useState(null); // 'start' or 'end' or null
 
-  // **DÜZELTME 1: selecting durumunun güncel değerini tutmak için Ref**
   const selectingRef = useRef(selecting);
   
-  // Ref'i her `selecting` state değişikliğinde güncelleyin
   useEffect(() => {
     selectingRef.current = selecting;
   }, [selecting]);
 
-  // Marker refs
   const startMarkerRef = useRef(null);
   const endMarkerRef = useRef(null);
 
-  // **DÜZELTME 2: Harita başlatma ve olay dinleyici kurulumu**
   useEffect(() => {
-    // Haritayı yalnızca bir kez başlat
     if (!mapRef.current) {
       const map = L.map('map').setView([39.954748, 32.7347912], 10);
       mapRef.current = map;
@@ -61,11 +56,8 @@ function FrontendMap() {
 
       osm.addTo(map);
       roadNetwork.addTo(map);
-      // Shortest Path layer'ı varsayılan olarak ekli kalsın
 
-      // Tıklama olay dinleyicisi
       map.on('click', function (e) {
-        // Güncel `selecting` değerine Ref üzerinden erişin
         const currentSelecting = selectingRef.current; 
 
         if (currentSelecting === 'start') {
@@ -77,9 +69,6 @@ function FrontendMap() {
         }
       });
     }
-
-    // Bu useEffect sadece harita başlatma ve olay ekleme işini yapar.
-    // Bağımlılık listesini boş bırakarak sadece bileşen mount olduğunda çalışmasını sağlarız.
   }, []); 
 
   // Show start/end markers as colored circles with labels
@@ -129,27 +118,18 @@ function FrontendMap() {
         const data = await res.json();
         alert(data.message);
 
-        // shortestPath WMS layer'ını güncelle
         const map = mapRef.current;
         if (map) {
-          // shortestPath layer'ı harita üzerindeki WMS katmanları arasında bul
+            // Find the shortestPath layer among WMS layers on the map
           map.eachLayer(layer => {
             console.log('layer:', layer.options.layers);
             if (layer instanceof L.TileLayer.WMS && layer.options.layers === PATH_LAYER) {
-              // WMS katmanını yeniden yüklemek için parametre ekle
+                // Add a parameter to force reload of the WMS layer
               layer.setParams({ _: Date.now() });
             }
           });
         }
-        // Shortest Path WMS katmanını yeniden yüklemeye zorlamak için bir yol
-        // Bu genellikle WMS katmanının 'setParams' veya 'redraw' çağrılmasıyla yapılır.
-        // Ancak kodunuzda shortestPath katmanına erişiminiz olmadığı için,
-        // basitleştirilmiş haliyle sadece alert gösteriliyor.
-        // Gerçek uygulamada, sunucudan dönen yanıtla WMS katmanı güncellenmelidir.
         if (!res.ok) throw new Error('Network response was not ok');
-        // Geoserver'a WMS katmanını güncellemesi için bir komut göndermelisiniz,
-        // ancak bu, genellikle Geoserver'ın `shortestPath` katmanını 
-        // Start ve End noktalarına göre otomatik olarak filtrelemesi beklenir.
         
         alert('Route sent! WMS layer should refresh on map move/zoom.');
         
@@ -169,7 +149,7 @@ function FrontendMap() {
           {selecting === 'end' ? 'Select End (Active)' : 'Select End'}
         </button>
         <button onClick={sendRouteRequest} disabled={!(start && end)} style={{ marginLeft: '10px', background: '#007bff', color: 'white' }}>
-          Gönder (Route Request)
+          Send (Route Request)
         </button>
         <span style={{ marginLeft: '20px' }}>
           {start && `Start: ${start.lat.toFixed(5)}, ${start.lng.toFixed(5)}`}
@@ -178,7 +158,9 @@ function FrontendMap() {
       </div>
       <div id="map" style={{ height: '500px', width: '100%' }}></div>
       <div>
-        <p>Haritadan başla ve bitiş noktalarını seçmek için ilgili butona tıklayın. Seçilen noktalar haritada farklı renkli marker ve etiketle gösterilir. "Gönder" butonu ile sunucuya iletebilirsiniz. **Seçim modundan çıkmak için haritada bir noktaya tıklayın.**</p>
+        <p>
+          Click the relevant button to select start and end points from the map. Selected points are shown on the map with different colored markers and labels. You can send them to the server with the "Send" button. <b>To exit selection mode, click anywhere on the map.</b>
+        </p>
       </div>
     </div>
   );

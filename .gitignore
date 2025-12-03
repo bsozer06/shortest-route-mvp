@@ -27,7 +27,8 @@ frontend/npm-debug.log*
 
 
 backend/node_modules/
-backend/venv/           # Python Sanal Ortamı
+backend/venv/          
+backend/package-lock.json
 
 backend/*.sqlite3
 backend/db.sqlite3
