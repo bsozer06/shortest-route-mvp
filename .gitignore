@@ -1,0 +1,36 @@
+.DS_Store          # macOS
+Thumbs.db          # Windows
+
+*.log
+*.tmp
+*.bak
+.idea/             
+.vscode/           
+.history/          
+
+.env              
+.env.local
+.env.*.local
+config/secrets.yml
+/vault/
+/keys/
+
+frontend/dist/
+frontend/build/
+frontend/out/
+
+frontend/node_modules/
+
+frontend/package-lock.json
+frontend/yarn.lock
+frontend/npm-debug.log*
+
+
+backend/node_modules/
+backend/venv/           # Python Sanal Ortamı
+
+backend/*.sqlite3
+backend/db.sqlite3
+backend/debug.log
+
+.vscode/
