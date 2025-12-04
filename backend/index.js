@@ -73,6 +73,32 @@ app.post('/update-route', async (req, res) => {
     }
 });
 
+// Clear shortest path data endpoint
+app.post('/clear-shortest-path', async (req, res) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        // Clear points table
+        await client.query('DELETE FROM public.points');
+        // Optionally refresh materialized view
+        try {
+            await client.query('REFRESH MATERIALIZED VIEW public.mv_short_path');
+        } catch (mvErr) {
+            console.error('Error refreshing materialized view:', mvErr);
+            await client.query('ROLLBACK');
+            return res.status(500).json({ error: 'Failed to refresh materialized view' });
+        }
+        await client.query('COMMIT');
+        res.json({ status: 'Success', message: 'Shortest path data cleared' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Transaction error:', err);
+        res.status(500).json({ error: 'Failed to clear shortest path data' });
+    } finally {
+        client.release();
+    }
+});
+
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

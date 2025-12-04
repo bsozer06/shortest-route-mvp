@@ -13,7 +13,7 @@ function FrontendMap() {
   const [selecting, setSelecting] = useState(null); // 'start' or 'end' or null
 
   const selectingRef = useRef(selecting);
-  
+
   useEffect(() => {
     selectingRef.current = selecting;
   }, [selecting]);
@@ -58,24 +58,26 @@ function FrontendMap() {
       roadNetwork.addTo(map);
 
       map.on('click', function (e) {
-        const currentSelecting = selectingRef.current; 
+        const currentSelecting = selectingRef.current;
 
         if (currentSelecting === 'start') {
+          clearShortestPath();
           setStart(e.latlng);
           setSelecting(null);
         } else if (currentSelecting === 'end') {
+          clearShortestPath();
           setEnd(e.latlng);
           setSelecting(null);
         }
       });
     }
-  }, []); 
+  }, []);
 
   // Show start/end markers as colored circles with labels
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    
+
     // Remove previous markers
     if (startMarkerRef.current) {
       map.removeLayer(startMarkerRef.current);
@@ -85,7 +87,7 @@ function FrontendMap() {
       map.removeLayer(endMarkerRef.current);
       endMarkerRef.current = null;
     }
-    
+
     // Add new markers as circleMarker
     if (start) {
       startMarkerRef.current = L.circleMarker([start.lat, start.lng], {
@@ -93,7 +95,7 @@ function FrontendMap() {
         color: 'green',
         fillColor: 'green',
         fillOpacity: 0.8,
-      }).addTo(map).bindTooltip('Start', {permanent: true, direction: 'top'}).openTooltip();
+      }).addTo(map).bindTooltip('Start', { permanent: true, direction: 'top' }).openTooltip();
     }
     if (end) {
       endMarkerRef.current = L.circleMarker([end.lat, end.lng], {
@@ -101,7 +103,7 @@ function FrontendMap() {
         color: 'red',
         fillColor: 'red',
         fillOpacity: 0.8,
-      }).addTo(map).bindTooltip('End', {permanent: true, direction: 'top'}).openTooltip();
+      }).addTo(map).bindTooltip('End', { permanent: true, direction: 'top' }).openTooltip();
     }
   }, [start, end]);
 
@@ -116,26 +118,49 @@ function FrontendMap() {
         });
 
         const data = await res.json();
-        alert(data.message);
+        // alert(data.message);
 
         const map = mapRef.current;
         if (map) {
-            // Find the shortestPath layer among WMS layers on the map
+          // Find the shortestPath layer among WMS layers on the map
           map.eachLayer(layer => {
             console.log('layer:', layer.options.layers);
             if (layer instanceof L.TileLayer.WMS && layer.options.layers === PATH_LAYER) {
-                // Add a parameter to force reload of the WMS layer
+              // Add a parameter to force reload of the WMS layer
               layer.setParams({ _: Date.now() });
             }
           });
         }
         if (!res.ok) throw new Error('Network response was not ok');
-        
-        alert('Route sent! WMS layer should refresh on map move/zoom.');
-        
+
+        // alert('Route sent! WMS layer should refresh on map move/zoom.');
+
       } catch (err) {
         alert('Error sending route: ' + err.message);
       }
+    }
+  };
+
+  // Function to clear shortest path data
+  const clearShortestPath = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/clear-shortest-path', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      // alert(data.message || 'Shortest path cleared');
+      // Optionally force WMS layer reload
+      const map = mapRef.current;
+      if (map) {
+        map.eachLayer(layer => {
+          if (layer instanceof L.TileLayer.WMS && layer.options.layers === PATH_LAYER) {
+            layer.setParams({ _: Date.now() });
+          }
+        });
+      }
+    } catch (err) {
+      alert('Error clearing shortest path: ' + err.message);
     }
   };
 
@@ -150,6 +175,9 @@ function FrontendMap() {
         </button>
         <button onClick={sendRouteRequest} disabled={!(start && end)} style={{ marginLeft: '10px', background: '#007bff', color: 'white' }}>
           Send (Route Request)
+        </button>
+        <button onClick={clearShortestPath} style={{ marginLeft: '10px', background: '#dc3545', color: 'white' }}>
+          Clear Shortest Path
         </button>
         <span style={{ marginLeft: '20px' }}>
           {start && `Start: ${start.lat.toFixed(5)}, ${start.lng.toFixed(5)}`}
