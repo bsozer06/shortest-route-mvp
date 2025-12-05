@@ -1,8 +1,15 @@
+
 # Shortest Path Route Finder MVP
 
 This project is a modern MVP web application for visualizing and comparing shortest routes on a road network using React, Leaflet, GeoServer, and a Node.js backend powered by PostgreSQL/PostGIS/pgRouting.
 
 ![App Screenshot](./images/ss-mvp-simple.png)
+
+## Sequence Diagram
+
+Below is a sequence diagram illustrating the shortest route calculation process:
+
+![Shortest Route Sequence Diagram](./images/seq-diag-shortest-route.png)
 
 ## Features
 
