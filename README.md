@@ -5,12 +5,6 @@ This project is a modern MVP web application for visualizing and comparing short
 
 ![App Screenshot](./images/ss-mvp-simple.png)
 
-## Sequence Diagram
-
-Below is a sequence diagram illustrating the shortest route calculation process:
-
-![Shortest Route Sequence Diagram](./images/seq-diag-shortest-route.png)
-
 ## Features
 
 - Interactive map with OpenStreetMap basemap
@@ -45,6 +39,12 @@ Below is a sequence diagram illustrating the shortest route calculation process:
 ## Advanced Routing Pipeline
 
 For details on shortest path calculation using PostgreSQL, PostGIS, and pgRouting, see [`postgresql_postgis_pgrouting_shortest_path_pipeline.md`](./postgresql_postgis_pgrouting_shortest_path_pipeline.md).
+
+## Sequence Diagram
+
+Below is a sequence diagram illustrating the shortest route calculation process in general:
+
+![Shortest Route Sequence Diagram](./images/seq-diag-shortest-route.png)
 
 ## Notes
 
